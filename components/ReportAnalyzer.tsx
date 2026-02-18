@@ -1,7 +1,8 @@
 
 import React, { useState } from 'react';
 import { Upload, FileText, Loader2, CheckCircle } from 'lucide-react';
-import { analyzeMedicalReport } from '../services/gemini';
+// Fix: Corrected import to use the actual exported member analyzeImplicitRisk
+import { analyzeImplicitRisk } from '../services/gemini';
 
 const ReportAnalyzer: React.FC = () => {
   const [analyzing, setAnalyzing] = useState(false);
@@ -21,7 +22,8 @@ const ReportAnalyzer: React.FC = () => {
       Patient reports mild exertional dyspnea.
     `;
     
-    const analysis = await analyzeMedicalReport(mockReportText);
+    // Fix: Updated function call to analyzeImplicitRisk
+    const analysis = await analyzeImplicitRisk(mockReportText);
     setResult(analysis);
     setAnalyzing(false);
   };

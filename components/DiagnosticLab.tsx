@@ -26,7 +26,8 @@ const DiagnosticLab: React.FC = () => {
     setPrediction(result);
     
     // Call Gemini for XAI
-    const explanation = await explainRiskAI(formData, result);
+    // Fix: Added empty trends array as third argument to match explainRiskAI signature
+    const explanation = await explainRiskAI(formData, result, []);
     setAiExplanation(explanation);
     setLoading(false);
   };

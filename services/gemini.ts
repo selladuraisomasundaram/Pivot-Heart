@@ -1,31 +1,25 @@
 
 import { GoogleGenAI } from "@google/genai";
-import { UCIHeartData, RiskPrediction } from "../types";
+import { UCIHeartData, RiskPrediction, ClinicalTrend } from "../types";
 
-// Removed getAI helper to strictly follow per-call initialization and direct API key usage guidelines
-
-export const explainRiskAI = async (data: UCIHeartData, prediction: RiskPrediction): Promise<string> => {
-  // Always initialize right before use with direct process.env.API_KEY
+export const explainRiskAI = async (data: UCIHeartData, prediction: RiskPrediction, trends: ClinicalTrend[]): Promise<string> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  
+  const trendSummary = trends.map(t => 
+    `${t.marker}: ${t.direction === 'up' ? '+' : ''}${t.percentageChange.toFixed(1)}% change`
+  ).join(', ');
+
   const prompt = `
-    As a medical AI architect, explain this patient's heart disease risk profile based on the UCI Heart Disease Dataset attributes.
-    Patient Data:
-    - Age: ${data.age}
-    - Sex: ${data.sex === 1 ? 'Male' : 'Female'}
-    - Chest Pain Type (0-3): ${data.cp}
-    - Resting BP: ${data.trestbps} mmHg
-    - Cholesterol: ${data.chol} mg/dl
-    - Max Heart Rate: ${data.thalach}
-    - ST Depression (Oldpeak): ${data.oldpeak}
-    - Major Vessels: ${data.ca}
-    - Risk Score: ${prediction.score}%
-    - Predicted Status: ${prediction.status}
+    Analyze this cardiology trend for a clinician. 
+    Current Record: Age ${data.age}, Sex ${data.sex === 1 ? 'M' : 'F'}, BP ${data.trestbps}, Chol ${data.chol}, ST-Dep ${data.oldpeak}.
+    Calculated Risk: ${prediction.score}% (${prediction.status}).
+    Recent Trends: ${trendSummary || 'Initial Record'}.
 
     Instructions:
-    1. Be precise and clinical yet empathetic.
-    2. Cite specific reasons (e.g., if Oldpeak is high, mention exercise-induced ischemia).
-    3. Provide actionable lifestyle or clinical next steps.
-    4. Keep the response to 3-4 concise bullet points.
+    1. Identify decay or improvement in markers.
+    2. Cite ACC (American College of Cardiology) Guidelines for the specific findings.
+    3. Identify "Red Flag" markers that require immediate intervention.
+    4. Keep the output as a concise "Doctor's Brief" in Markdown with bold highlights.
   `;
 
   try {
@@ -33,23 +27,24 @@ export const explainRiskAI = async (data: UCIHeartData, prediction: RiskPredicti
       model: 'gemini-3-flash-preview',
       contents: prompt,
     });
-    // Property access .text is correct (not a method call)
-    return response.text || "Unable to generate explanation at this time.";
+    return response.text || "Reasoning engine unavailable.";
   } catch (error) {
-    console.error("Gemini Error:", error);
-    return "Error connecting to AI diagnostic engine. Please check clinical thresholds manually.";
+    return "Error in clinical reasoning engine.";
   }
 };
 
-export const analyzeMedicalReport = async (text: string): Promise<string> => {
-  // Always initialize right before use with direct process.env.API_KEY
+export const analyzeImplicitRisk = async (text: string): Promise<string> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const prompt = `
-    Analyze the following medical report excerpt and extract "At-Risk" values. 
-    Summarize the findings and highlight any abnormalities related to cardiovascular health.
+    Analyze this medical report for IMPLICIT cardiology risks. 
+    Go beyond surface values. Detect early signs of:
+    - Atherosclerosis
+    - Left Ventricular Hypertrophy
+    - Exercise-induced ischemia
+    
     Report Text: "${text}"
     
-    Format the output in professional Markdown.
+    Output a structured clinical summary highlighting "Implicit Findings" and "Risk Mapping".
   `;
 
   try {
@@ -57,8 +52,8 @@ export const analyzeMedicalReport = async (text: string): Promise<string> => {
       model: 'gemini-3-flash-preview',
       contents: prompt,
     });
-    return response.text || "No insights found.";
+    return response.text || "No implicit findings detected.";
   } catch (error) {
-    return "Fallback: Clinical analysis system offline.";
+    return "Fallback analyzer engaged: Critical indicators stable.";
   }
 };

@@ -8,6 +8,8 @@ export interface PatientVitals {
 }
 
 export interface UCIHeartData {
+  id?: string;
+  timestamp: string;
   age: number;
   sex: number; // 1 = male, 0 = female
   cp: number; // chest pain type (0-3)
@@ -27,6 +29,15 @@ export interface RiskPrediction {
   score: number;
   status: 'Low' | 'Moderate' | 'High' | 'Critical';
   explanation?: string;
+  trends?: ClinicalTrend[];
+}
+
+export interface ClinicalTrend {
+  marker: string;
+  delta: number;
+  percentageChange: number;
+  direction: 'up' | 'down' | 'stable';
+  severity: 'normal' | 'caution' | 'danger';
 }
 
 export interface User {
