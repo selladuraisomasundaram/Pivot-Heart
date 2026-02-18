@@ -1,0 +1,7 @@
+{
+  "name": "Pivot-Heart",
+  "description": "A high-end, AI-powered Heart Disease Life-Cycle Manager featuring clinical diagnostic prediction, medical report analysis, and care tracking.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
